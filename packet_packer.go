@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
-	"strconv"
 
 	"github.com/quic-go/quic-go/internal/ackhandler"
 	"github.com/quic-go/quic-go/internal/handshake"
@@ -480,7 +479,7 @@ func (p *packetPacker) appendPacket(
 ) (shortHeaderPacket, error) {
 	var maxPacketSizeFixed protocol.ByteCount
 	maxPacketSizeFixed = 2000
-	fmt.Println("maxPacketSizeFixed", maxPacketSizeFixed)
+	// fmt.Println("maxPacketSizeFixed", maxPacketSizeFixed)
 	sealer, err := p.cryptoSetup.Get1RTTSealer()
 	if err != nil {
 		return shortHeaderPacket{}, err
@@ -489,9 +488,9 @@ func (p *packetPacker) appendPacket(
 	connID := p.getDestConnID()
 	hdrLen := wire.ShortHeaderLen(connID, pnLen)
 	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSizeFixed, onlyAck, now, v)
-	str_pl_length := strconv.FormatInt(int64(pl.length), 10)
-	fmt.Println("appendPacket ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-	fmt.Println("pl.length", str_pl_length)
+	// str_pl_length := strconv.FormatInt(int64(pl.length), 10)
+	// fmt.Println("appendPacket ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	// fmt.Println("pl.length", str_pl_length)
 	if pl.length == 0 {
 		return shortHeaderPacket{}, errNothingToPack
 	}
