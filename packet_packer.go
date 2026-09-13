@@ -975,6 +975,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 	currentSize := protocol.ByteCount(payloadOffset)
 	if targetSize > currentSize {
 		raw = append(raw, make([]byte, targetSize-currentSize)...)
+		pl.length = protocol.ByteCount(len(raw) - payloadOffset)
 	}
 	// Randomize the order of the control frames.
 	// This makes sure that the receiver doesn't rely on the order in which frames are packed.
