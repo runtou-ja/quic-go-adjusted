@@ -884,6 +884,14 @@ func (p *packetPacker) appendLongHeaderPacket(buffer *packetBuffer, header *wire
 	}
 	payloadOffset := protocol.ByteCount(len(raw))
 
+	// Pad to ~1400 total packet size.
+	targetSize := protocol.ByteCount(1400)
+	totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
+	if totalWithoutExtra < targetSize {
+		paddingLen += targetSize - totalWithoutExtra
+		header.Length = pnLen + protocol.ByteCount(sealer.Overhead()) + pl.length + paddingLen
+	}
+
 	raw, err = p.appendPacketPayload(raw, pl, paddingLen, v)
 	if err != nil {
 		return nil, err
@@ -929,6 +937,14 @@ func (p *packetPacker) appendShortHeaderPacket(
 	}
 	payloadOffset := protocol.ByteCount(len(raw))
 
+	if !isMTUProbePacket {
+		targetSize := protocol.ByteCount(1400)
+		totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
+		if totalWithoutExtra < targetSize {
+			paddingLen += targetSize - totalWithoutExtra
+		}
+	}
+
 	raw, err = p.appendPacketPayload(raw, pl, paddingLen, v)
 	if err != nil {
 		return shortHeaderPacket{}, err
@@ -968,12 +984,11 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 			return nil, err
 		}
 	}
-	// if paddingLen > 0 {
-	// 	raw = append(raw, make([]byte, paddingLen)...)
-	// }
 
-	// Randomize the order of the control frames.
-	// This makes sure that the receiver doesn't rely on the order in which frames are packed.
+	if paddingLen > 0 {
+		raw = append(raw, make([]byte, paddingLen)...)
+	}
+
 	if len(pl.frames) > 1 {
 		p.rand.Shuffle(len(pl.frames), func(i, j int) { pl.frames[i], pl.frames[j] = pl.frames[j], pl.frames[i] })
 	}
@@ -992,15 +1007,9 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 		}
 	}
 
-	if targetSize := protocol.ByteCount(1400); protocol.ByteCount(len(raw)-payloadOffset) < targetSize {
-		raw = append(raw, make([]byte, targetSize-protocol.ByteCount(len(raw)-payloadOffset))...)
-	}
-
-	// len(raw) - payloadOffset == pl.length + paddingLen
 	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddingLen; payloadSize != pl.length {
 		return nil, fmt.Errorf("PacketPacker BUG: payload size inconsistent (expected %d, got %d bytes)", pl.length, payloadSize)
 	}
-	fmt.Println("payloadSize---------------------------------------------------", protocol.ByteCount(len(raw)-payloadOffset)-paddingLen)
 	return raw, nil
 }
 
