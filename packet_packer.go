@@ -874,6 +874,13 @@ func (p *packetPacker) appendLongHeaderPacket(buffer *packetBuffer, header *wire
 		paddingLen = 4 - pnLen - pl.length
 	}
 	paddingLen += padding
+
+	const estHeaderLen protocol.ByteCount = 24
+	totalEst := estHeaderLen + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
+	if totalEst < 1400 {
+		paddingLen += 1400 - totalEst
+	}
+
 	header.Length = pnLen + protocol.ByteCount(sealer.Overhead()) + pl.length + paddingLen
 
 	startLen := len(buffer.Data)
@@ -883,14 +890,6 @@ func (p *packetPacker) appendLongHeaderPacket(buffer *packetBuffer, header *wire
 		return nil, err
 	}
 	payloadOffset := protocol.ByteCount(len(raw))
-
-	// Pad to ~1400 total packet size.
-	targetSize := protocol.ByteCount(1400)
-	totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
-	if totalWithoutExtra < targetSize {
-		paddingLen += targetSize - totalWithoutExtra
-		header.Length = pnLen + protocol.ByteCount(sealer.Overhead()) + pl.length + paddingLen
-	}
 
 	raw, err = p.appendPacketPayload(raw, pl, paddingLen, v)
 	if err != nil {
