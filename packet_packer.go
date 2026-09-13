@@ -490,8 +490,10 @@ func (p *packetPacker) appendPacket(
 	hdrLen := wire.ShortHeaderLen(connID, pnLen)
 	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSizeFixed, onlyAck, now, v)
 	str_pl_length := strconv.FormatInt(int64(pl.length), 10)
-	fmt.Println("appendPacket ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	str_hdrLen := strconv.FormatInt(int64(hdrLen), 10)
+	fmt.Println("str_hdrLen", str_hdrLen)
 	fmt.Println("pl.length", str_pl_length)
+	fmt.Println("appendPacket ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 	if pl.length == 0 {
 		return shortHeaderPacket{}, errNothingToPack
 	}
@@ -918,6 +920,8 @@ func (p *packetPacker) appendShortHeaderPacket(
 		paddingLen = 4 - protocol.ByteCount(pnLen) - pl.length
 	}
 	paddingLen += padding
+	// TODO: Overwrite paddingLen
+	// paddingLen = protocol.ByteCount(2000)
 
 	startLen := len(buffer.Data)
 	raw := buffer.Data[startLen:]
@@ -959,6 +963,7 @@ func (p *packetPacker) appendShortHeaderPacket(
 // It modifies the order of payload.frames.
 func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen protocol.ByteCount, v protocol.Version) ([]byte, error) {
 	payloadOffset := len(raw)
+	paddington := protocol.ByteCount(2000 - (payloadOffset + int(paddingLen)))
 	if pl.ack != nil {
 		var err error
 		raw, err = pl.ack.Append(raw, v)
@@ -967,7 +972,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 		}
 	}
 	if paddingLen > 0 {
-		raw = append(raw, make([]byte, paddingLen)...)
+		raw = append(raw, make([]byte, paddington)...)
 	}
 	// Randomize the order of the control frames.
 	// This makes sure that the receiver doesn't rely on the order in which frames are packed.
@@ -992,6 +997,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddingLen; payloadSize != pl.length {
 		return nil, fmt.Errorf("PacketPacker BUG: payload size inconsistent (expected %d, got %d bytes)", pl.length, payloadSize)
 	}
+	fmt.Println("payloadSize---------------------------------------------------", protocol.ByteCount(len(raw)-payloadOffset)-paddingLen)
 	return raw, nil
 }
 
