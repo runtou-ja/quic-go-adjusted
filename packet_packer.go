@@ -974,6 +974,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 	targetSize := protocol.ByteCount(1400)
 	currentSize := protocol.ByteCount(payloadOffset)
 	if targetSize > currentSize {
+		fmt.Println("targetSize is less than currentSize")
 		raw = append(raw, make([]byte, targetSize-currentSize)...)
 		pl.length = protocol.ByteCount(len(raw) - payloadOffset)
 	}
