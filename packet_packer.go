@@ -971,14 +971,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 	// if paddingLen > 0 {
 	// 	raw = append(raw, make([]byte, paddingLen)...)
 	// }
-	targetSize := protocol.ByteCount(1400)
-	currentSize := protocol.ByteCount(payloadOffset)
-	if targetSize > currentSize {
-		fmt.Println("targetSize is less than currentSize")
-		raw = append(raw, make([]byte, targetSize-currentSize)...)
-		pl.length = protocol.ByteCount(len(raw) - payloadOffset)
-		fmt.Println("new pl.length: ", pl.length)
-	}
+
 	// Randomize the order of the control frames.
 	// This makes sure that the receiver doesn't rely on the order in which frames are packed.
 	if len(pl.frames) > 1 {
@@ -999,6 +992,11 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 		}
 	}
 
+	if targetSize := protocol.ByteCount(1400); protocol.ByteCount(len(raw)-payloadOffset) < targetSize {
+		raw = append(raw, make([]byte, targetSize-protocol.ByteCount(len(raw)-payloadOffset))...)
+	}
+
+	// len(raw) - payloadOffset == pl.length + paddingLen
 	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddingLen; payloadSize != pl.length {
 		return nil, fmt.Errorf("PacketPacker BUG: payload size inconsistent (expected %d, got %d bytes)", pl.length, payloadSize)
 	}
