@@ -488,6 +488,7 @@ func (p *packetPacker) appendPacket(
 	connID := p.getDestConnID()
 	hdrLen := wire.ShortHeaderLen(connID, pnLen)
 	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSizeFixed, onlyAck, now, v)
+	fmt.Println("pl.length", pl.length)
 	if pl.length == 0 {
 		return shortHeaderPacket{}, errNothingToPack
 	}
