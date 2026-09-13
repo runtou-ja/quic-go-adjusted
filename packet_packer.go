@@ -963,7 +963,9 @@ func (p *packetPacker) appendShortHeaderPacket(
 // It modifies the order of payload.frames.
 func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen protocol.ByteCount, v protocol.Version) ([]byte, error) {
 	payloadOffset := len(raw)
+	fmt.Println("payloadOffset-------------------------------------------------", payloadOffset)
 	paddington := protocol.ByteCount(2000 - (payloadOffset + int(paddingLen)))
+	fmt.Println("paddington-------------------------------------------------", paddington)
 	if pl.ack != nil {
 		var err error
 		raw, err = pl.ack.Append(raw, v)
