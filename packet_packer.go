@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"strconv"
 
 	"github.com/quic-go/quic-go/internal/ackhandler"
 	"github.com/quic-go/quic-go/internal/handshake"
@@ -488,7 +489,8 @@ func (p *packetPacker) appendPacket(
 	connID := p.getDestConnID()
 	hdrLen := wire.ShortHeaderLen(connID, pnLen)
 	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSizeFixed, onlyAck, now, v)
-	fmt.Println("pl.length", pl.length)
+	str_pl_length := strconv.FormatInt(int64(pl.length), 10)
+	fmt.Println("pl.length", str_pl_length)
 	if pl.length == 0 {
 		return shortHeaderPacket{}, errNothingToPack
 	}
