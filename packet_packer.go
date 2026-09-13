@@ -478,8 +478,7 @@ func (p *packetPacker) appendPacket(
 	v protocol.Version,
 ) (shortHeaderPacket, error) {
 	var diff_from_top protocol.ByteCount
-	diff_from_top = 1400 - maxPacketSize
-	maxPacketSizeFixed := maxPacketSize + diff_from_top
+	maxPacketSizeFixed := 2000
 	fmt.Println("maxPacketSizeFixed", maxPacketSizeFixed)
 	sealer, err := p.cryptoSetup.Get1RTTSealer()
 	if err != nil {
