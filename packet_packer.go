@@ -920,8 +920,6 @@ func (p *packetPacker) appendShortHeaderPacket(
 		paddingLen = 4 - protocol.ByteCount(pnLen) - pl.length
 	}
 	paddingLen += padding
-	// TODO: Overwrite paddingLen
-	// paddingLen = protocol.ByteCount(2000)
 
 	startLen := len(buffer.Data)
 	raw := buffer.Data[startLen:]
@@ -963,9 +961,6 @@ func (p *packetPacker) appendShortHeaderPacket(
 // It modifies the order of payload.frames.
 func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen protocol.ByteCount, v protocol.Version) ([]byte, error) {
 	payloadOffset := len(raw)
-	fmt.Println("payloadOffset-------------------------------------------------", payloadOffset)
-	paddington := protocol.ByteCount(2000 - (payloadOffset + int(paddingLen)))
-	fmt.Println("paddington-------------------------------------------------", paddington)
 	if pl.ack != nil {
 		var err error
 		raw, err = pl.ack.Append(raw, v)
@@ -973,8 +968,13 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 			return nil, err
 		}
 	}
-	if paddingLen > 0 {
-		raw = append(raw, make([]byte, paddington)...)
+	// if paddingLen > 0 {
+	// 	raw = append(raw, make([]byte, paddingLen)...)
+	// }
+	targetSize := protocol.ByteCount(1400)
+	currentSize := protocol.ByteCount(payloadOffset)
+	if targetSize > currentSize {
+		raw = append(raw, make([]byte, targetSize-currentSize)...)
 	}
 	// Randomize the order of the control frames.
 	// This makes sure that the receiver doesn't rely on the order in which frames are packed.
@@ -996,7 +996,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 		}
 	}
 
-	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddington; payloadSize != pl.length {
+	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddingLen; payloadSize != pl.length {
 		return nil, fmt.Errorf("PacketPacker BUG: payload size inconsistent (expected %d, got %d bytes)", pl.length, payloadSize)
 	}
 	fmt.Println("payloadSize---------------------------------------------------", protocol.ByteCount(len(raw)-payloadOffset)-paddingLen)
