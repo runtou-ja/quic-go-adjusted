@@ -996,7 +996,7 @@ func (p *packetPacker) appendPacketPayload(raw []byte, pl payload, paddingLen pr
 		}
 	}
 
-	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddingLen; payloadSize != pl.length {
+	if payloadSize := protocol.ByteCount(len(raw)-payloadOffset) - paddington; payloadSize != pl.length {
 		return nil, fmt.Errorf("PacketPacker BUG: payload size inconsistent (expected %d, got %d bytes)", pl.length, payloadSize)
 	}
 	fmt.Println("payloadSize---------------------------------------------------", protocol.ByteCount(len(raw)-payloadOffset)-paddingLen)
