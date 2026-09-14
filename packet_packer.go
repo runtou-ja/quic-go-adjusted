@@ -875,12 +875,6 @@ func (p *packetPacker) appendLongHeaderPacket(buffer *packetBuffer, header *wire
 	}
 	paddingLen += padding
 
-	const estHeaderLen protocol.ByteCount = 24
-	totalEst := estHeaderLen + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
-	if totalEst < 1100 {
-		paddingLen += 1100 - totalEst
-	}
-
 	header.Length = pnLen + protocol.ByteCount(sealer.Overhead()) + pl.length + paddingLen
 
 	startLen := len(buffer.Data)
@@ -937,10 +931,9 @@ func (p *packetPacker) appendShortHeaderPacket(
 	payloadOffset := protocol.ByteCount(len(raw))
 
 	if !isMTUProbePacket {
-		targetSize := protocol.ByteCount(1100)
 		totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
-		if totalWithoutExtra < targetSize {
-			paddingLen += targetSize - totalWithoutExtra
+		if totalWithoutExtra < maxPacketSize {
+			paddingLen += maxPacketSize - totalWithoutExtra
 		}
 	}
 
