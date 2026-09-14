@@ -435,11 +435,13 @@ func (p *packetPacker) PackCoalescedPacket(onlyAck bool, maxSize protocol.ByteCo
 		packet.longHdrPackets = append(packet.longHdrPackets, cont)
 	}
 	if handshakePayload.length > 0 {
-		cont, err := p.appendLongHeaderPacket(buffer, handshakeHdr, handshakePayload, 0, protocol.EncryptionHandshake, 0, handshakeSealer, v)
-		if err != nil {
-			return nil, err
+		if protocol.ByteCount(len(buffer.Data)) < protocol.ByteCount(cap(buffer.Data)) {
+			cont, err := p.appendLongHeaderPacket(buffer, handshakeHdr, handshakePayload, 0, protocol.EncryptionHandshake, 0, handshakeSealer, v)
+			if err != nil {
+				return nil, err
+			}
+			packet.longHdrPackets = append(packet.longHdrPackets, cont)
 		}
-		packet.longHdrPackets = append(packet.longHdrPackets, cont)
 	}
 	if zeroRTTPayload.length > 0 {
 		longHdrPacket, err := p.appendLongHeaderPacket(buffer, zeroRTTHdr, zeroRTTPayload, 0, protocol.Encryption0RTT, 0, zeroRTTSealer, v)
