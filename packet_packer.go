@@ -938,6 +938,11 @@ func (p *packetPacker) appendShortHeaderPacket(
 		return shortHeaderPacket{}, err
 	}
 	payloadOffset := protocol.ByteCount(len(raw))
+
+	if minNeeded := payloadOffset + pl.length + protocol.ByteCount(sealer.Overhead()); minNeeded > protocol.ByteCount(cap(buffer.Data)-startLen) {
+		return shortHeaderPacket{}, fmt.Errorf("insufficient buffer space for short header packet")
+	}
+
 	fmt.Println("IN the appendShortHeaderPacker")
 	if !isMTUProbePacket {
 		totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
