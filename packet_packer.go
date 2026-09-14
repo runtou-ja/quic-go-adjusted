@@ -478,9 +478,6 @@ func (p *packetPacker) appendPacket(
 	now monotime.Time,
 	v protocol.Version,
 ) (shortHeaderPacket, error) {
-	var maxPacketSizeFixed protocol.ByteCount
-	maxPacketSizeFixed = 2000
-	fmt.Println("maxPacketSizeFixed", maxPacketSizeFixed)
 	sealer, err := p.cryptoSetup.Get1RTTSealer()
 	if err != nil {
 		return shortHeaderPacket{}, err
@@ -488,7 +485,7 @@ func (p *packetPacker) appendPacket(
 	pn, pnLen := p.pnManager.PeekPacketNumber(protocol.Encryption1RTT)
 	connID := p.getDestConnID()
 	hdrLen := wire.ShortHeaderLen(connID, pnLen)
-	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSizeFixed, onlyAck, now, v)
+	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSize, onlyAck, now, v)
 	str_pl_length := strconv.FormatInt(int64(pl.length), 10)
 	str_hdrLen := strconv.FormatInt(int64(hdrLen), 10)
 	fmt.Println("str_hdrLen", str_hdrLen)
@@ -929,14 +926,16 @@ func (p *packetPacker) appendShortHeaderPacket(
 		return shortHeaderPacket{}, err
 	}
 	payloadOffset := protocol.ByteCount(len(raw))
-
+	fmt.Println("IN the appendShortHeaderPacker")
 	if !isMTUProbePacket {
+		fmt.Println("IN the !isMTU")
+
 		totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
 		if totalWithoutExtra < maxPacketSize {
 			paddingLen += maxPacketSize - totalWithoutExtra
 		}
 	}
-
+	fmt.Println("appendingPacketPayload...")
 	raw, err = p.appendPacketPayload(raw, pl, paddingLen, v)
 	if err != nil {
 		return shortHeaderPacket{}, err
