@@ -428,21 +428,21 @@ func (p *packetPacker) PackCoalescedPacket(onlyAck bool, maxSize protocol.ByteCo
 	}
 	if initialPayload.length > 0 {
 		padding := p.initialPaddingLen(initialPayload.frames, size, maxSize)
-		cont, err := p.appendLongHeaderPacket(buffer, initialHdr, initialPayload, padding, protocol.EncryptionInitial, maxSize, initialSealer, v)
+		cont, err := p.appendLongHeaderPacket(buffer, initialHdr, initialPayload, padding, protocol.EncryptionInitial, 0, initialSealer, v)
 		if err != nil {
 			return nil, err
 		}
 		packet.longHdrPackets = append(packet.longHdrPackets, cont)
 	}
 	if handshakePayload.length > 0 {
-		cont, err := p.appendLongHeaderPacket(buffer, handshakeHdr, handshakePayload, 0, protocol.EncryptionHandshake, maxSize, handshakeSealer, v)
+		cont, err := p.appendLongHeaderPacket(buffer, handshakeHdr, handshakePayload, 0, protocol.EncryptionHandshake, 0, handshakeSealer, v)
 		if err != nil {
 			return nil, err
 		}
 		packet.longHdrPackets = append(packet.longHdrPackets, cont)
 	}
 	if zeroRTTPayload.length > 0 {
-		longHdrPacket, err := p.appendLongHeaderPacket(buffer, zeroRTTHdr, zeroRTTPayload, 0, protocol.Encryption0RTT, maxSize, zeroRTTSealer, v)
+		longHdrPacket, err := p.appendLongHeaderPacket(buffer, zeroRTTHdr, zeroRTTPayload, 0, protocol.Encryption0RTT, 0, zeroRTTSealer, v)
 		if err != nil {
 			return nil, err
 		}
