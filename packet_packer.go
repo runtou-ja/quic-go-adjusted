@@ -873,12 +873,6 @@ func (p *packetPacker) appendLongHeaderPacket(buffer *packetBuffer, header *wire
 	paddingLen += padding
 
 	startLen := len(buffer.Data)
-	raw := buffer.Data[startLen:]
-	raw, err := header.Append(raw, v)
-	if err != nil {
-		return nil, err
-	}
-	payloadOffset := protocol.ByteCount(len(raw))
 
 	available := protocol.ByteCount(cap(buffer.Data) - startLen)
 	target := maxPacketSize
@@ -892,6 +886,13 @@ func (p *packetPacker) appendLongHeaderPacket(buffer *packetBuffer, header *wire
 	}
 
 	header.Length = pnLen + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
+
+	raw := buffer.Data[startLen:]
+	raw, err := header.Append(raw, v)
+	if err != nil {
+		return nil, err
+	}
+	payloadOffset := protocol.ByteCount(len(raw))
 
 	raw, err = p.appendPacketPayload(raw, pl, paddingLen, v)
 	if err != nil {
