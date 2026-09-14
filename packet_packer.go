@@ -928,11 +928,14 @@ func (p *packetPacker) appendShortHeaderPacket(
 	payloadOffset := protocol.ByteCount(len(raw))
 	fmt.Println("IN the appendShortHeaderPacker")
 	if !isMTUProbePacket {
-		fmt.Println("IN the !isMTU")
-
 		totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
-		if totalWithoutExtra < maxPacketSize {
-			paddingLen += maxPacketSize - totalWithoutExtra
+		available := protocol.ByteCount(cap(buffer.Data) - startLen)
+		target := maxPacketSize
+		if available < target {
+			target = available
+		}
+		if totalWithoutExtra < target {
+			paddingLen += target - totalWithoutExtra
 		}
 	}
 	fmt.Println("appendingPacketPayload...")
