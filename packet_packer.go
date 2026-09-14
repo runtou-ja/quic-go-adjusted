@@ -448,11 +448,14 @@ func (p *packetPacker) PackCoalescedPacket(onlyAck bool, maxSize protocol.ByteCo
 		}
 		packet.longHdrPackets = append(packet.longHdrPackets, longHdrPacket)
 	} else if oneRTTPayload.length > 0 {
-		shp, err := p.appendShortHeaderPacket(buffer, connID, oneRTTPacketNumber, oneRTTPacketNumberLen, kp, oneRTTPayload, 0, maxSize, oneRTTSealer, false, v)
-		if err != nil {
-			return nil, err
+
+		if protocol.ByteCount(len(buffer.Data)) < protocol.ByteCount(cap(buffer.Data)) {
+			shp, err := p.appendShortHeaderPacket(buffer, connID, oneRTTPacketNumber, oneRTTPacketNumberLen, kp, oneRTTPayload, 0, maxSize, oneRTTSealer, false, v)
+			if err != nil {
+				return nil, err
+			}
+			packet.shortHdrPacket = &shp
 		}
-		packet.shortHdrPacket = &shp
 	}
 	return packet, nil
 }
