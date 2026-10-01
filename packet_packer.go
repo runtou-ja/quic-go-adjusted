@@ -493,9 +493,9 @@ func (p *packetPacker) appendPacket(
 	pl := p.maybeGetShortHeaderPacket(sealer, hdrLen, maxPacketSize, onlyAck, now, v)
 	str_pl_length := strconv.FormatInt(int64(pl.length), 10)
 	str_hdrLen := strconv.FormatInt(int64(hdrLen), 10)
-	fmt.Println("str_hdrLen", str_hdrLen)
-	fmt.Println("pl.length", str_pl_length)
-	fmt.Println("appendPacket ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+	// fmt.Println("str_hdrLen", str_hdrLen)
+	// fmt.Println("pl.length", str_pl_length)
+	// fmt.Println("appendPacket ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 	if pl.length == 0 {
 		return shortHeaderPacket{}, errNothingToPack
 	}
@@ -948,7 +948,7 @@ func (p *packetPacker) appendShortHeaderPacket(
 		return shortHeaderPacket{}, fmt.Errorf("insufficient buffer space for short header packet")
 	}
 
-	fmt.Println("IN the appendShortHeaderPacker")
+	// fmt.Println("IN the appendShortHeaderPacker")
 	if !isMTUProbePacket {
 		totalWithoutExtra := payloadOffset + pl.length + paddingLen + protocol.ByteCount(sealer.Overhead())
 		available := protocol.ByteCount(cap(buffer.Data) - startLen)
@@ -960,7 +960,7 @@ func (p *packetPacker) appendShortHeaderPacket(
 			paddingLen += target - totalWithoutExtra
 		}
 	}
-	fmt.Println("appendingPacketPayload...")
+	// fmt.Println("appendingPacketPayload...")
 	raw, err = p.appendPacketPayload(raw, pl, paddingLen, v)
 	if err != nil {
 		return shortHeaderPacket{}, err
